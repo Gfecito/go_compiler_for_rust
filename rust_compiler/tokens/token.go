@@ -26,6 +26,7 @@ const (
 	// Keywords
 	FUNCTION TokenType = "FUNCTION"
 	LET      TokenType = "LET"
+	RETURN   TokenType = "RETURN"
 )
 
 type Token struct {
