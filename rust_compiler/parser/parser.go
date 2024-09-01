@@ -10,13 +10,13 @@ type Parser struct {
 	l         *lexer.Lexer
 	curToken  tokens.Token
 	peekToken tokens.Token
-	errors    []string
+	Errors    []string
 }
 
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{
 		l:      l,
-		errors: []string{},
+		Errors: []string{},
 	}
 
 	// Peek at the first Token
