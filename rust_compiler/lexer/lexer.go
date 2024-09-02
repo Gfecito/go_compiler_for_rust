@@ -58,7 +58,7 @@ func (l *Lexer) NextToken() tokens.Token {
 	default:
 		if isLegalIdentifierChar(l.ch) {
 			tok.Literal = l.readIdentifier()
-			tok.Type = tokens.IDENT
+			tok.Type = l.keyWordMatch(tok.Literal)
 			return tok
 		} else if isDigit(l.ch) {
 			tok.Literal = l.readNumber()
@@ -77,6 +77,20 @@ func (l *Lexer) NextToken() tokens.Token {
 	// Not doing so would loop infinitely on special characters.
 	l.readChar()
 	return tok
+}
+
+// Looks up an identifier to see if its a reserved keyword.
+func (l *Lexer) keyWordMatch(identifier string) tokens.TokenType {
+	switch identifier {
+	case "let":
+		return tokens.LET
+	case "fn":
+		return tokens.FUNCTION
+	case "return":
+		return tokens.RETURN
+	default:
+		return tokens.IDENT
+	}
 }
 
 func (l *Lexer) skipWhitespace() {
