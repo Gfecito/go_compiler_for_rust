@@ -3,7 +3,6 @@ package ast
 // Abstract Syntax Tree (AST)
 
 import (
-	"fmt"
 	"rust_compiler/tokens"
 )
 
@@ -37,7 +36,6 @@ func (p *Program) TokenLiteral() string {
 func (p *Program) String() string {
 	toString := ""
 	programLength := len(p.Statements)
-	fmt.Printf("Program has %+v statements.\n", programLength)
 	for index, statement := range p.Statements {
 		toString += statement.String()
 		// Add spacing between tokens, unless EOF.
@@ -61,6 +59,18 @@ func (identifier *Identifier) TokenLiteral() string { return identifier.Token.Li
 
 // Compile-time check that Identifier implements Expression
 var _ Expression = (*Identifier)(nil)
+
+// IntegerLiteral node
+type IntegerLiteral struct {
+	Token tokens.Token // the integer token
+	Value int64
+}
+
+func (il *IntegerLiteral) expressionNode()      {}
+func (il *IntegerLiteral) TokenLiteral() string { return il.Token.Literal }
+
+// Compile-time check that IntegerLiteral implements Expression
+var _ Expression = (*IntegerLiteral)(nil)
 
 type LetStatement struct {
 	Token tokens.Token

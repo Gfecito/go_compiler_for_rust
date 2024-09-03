@@ -1,9 +1,11 @@
 package parser
 
 import (
+	"fmt"
 	"rust_compiler/ast"
 	"rust_compiler/lexer"
 	"rust_compiler/tokens"
+	"strconv"
 )
 
 type Parser struct {
@@ -19,9 +21,7 @@ func New(l *lexer.Lexer) *Parser {
 		Errors: []string{},
 	}
 
-	// Peek at the first Token
 	p.nextToken()
-	// First Token will now be current, and we're peeking at the second one.
 	p.nextToken()
 	return p
 }
@@ -35,30 +35,12 @@ func (p *Parser) parseStatement() ast.Statement {
 	switch p.curToken.Type {
 	case tokens.LET:
 		return p.parseLetStatement()
-	// case tokens.RETURN:
-	// 	return p.parseReturnStatement()
 	default:
 		return nil
-		// return p.parseExpressionStatement()
 	}
 }
 
-func (p *Parser) parseReturnStatement() *ast.LetStatement {
-	// stmt is an abbreviation for statement.
-	stmt := &ast.LetStatement{Token: p.curToken}
-
-	return stmt
-}
-
-func (p *Parser) parseExpressionStatement() *ast.LetStatement {
-	// stmt is an abbreviation for statement.
-	stmt := &ast.LetStatement{Token: p.curToken}
-
-	return stmt
-}
-
 func (p *Parser) parseLetStatement() *ast.LetStatement {
-	// stmt is an abbreviation for statement.
 	stmt := &ast.LetStatement{Token: p.curToken}
 
 	if !p.expectPeek(tokens.IDENT) {
@@ -73,20 +55,52 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 
 	p.nextToken()
 
-	// stmt.Value = *p.parseExpressionStatement(LOWEST)
+	stmt.Value = p.parseExpression()
 
-	if p.expectPeek(tokens.SEMICOLON) {
+	if p.peekToken.Type == tokens.SEMICOLON {
 		p.nextToken()
 	}
 
 	return stmt
 }
 
-func (p *Parser) expectPeek(expectedType tokens.TokenType) bool {
-	return p.peekToken.Type == expectedType
+func (p *Parser) parseExpression() ast.Expression {
+	switch p.curToken.Type {
+	case tokens.INT:
+		return p.parseIntegerLiteral()
+	default:
+		return nil
+	}
 }
 
-// Returns the root node of the AST: the program!
+func (p *Parser) parseIntegerLiteral() ast.Expression {
+	lit := &ast.IntegerLiteral{Token: p.curToken}
+
+	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
+	if err != nil {
+		msg := fmt.Sprintf("could not parse %q as integer", p.curToken.Literal)
+		p.Errors = append(p.Errors, msg)
+		return nil
+	}
+
+	lit.Value = value
+	return lit
+}
+
+func (p *Parser) expectPeek(expectedType tokens.TokenType) bool {
+	if p.peekToken.Type == expectedType {
+		p.nextToken()
+		return true
+	}
+	p.peekError(expectedType)
+	return false
+}
+
+func (p *Parser) peekError(t tokens.TokenType) {
+	msg := fmt.Sprintf("expected next token to be %s, got %s instead", t, p.peekToken.Type)
+	p.Errors = append(p.Errors, msg)
+}
+
 func (p *Parser) ParseProgram() *ast.Program {
 	program := &ast.Program{}
 	program.Statements = []ast.Statement{}
